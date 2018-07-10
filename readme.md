@@ -1,70 +1,40 @@
-## Laravel 5 example ##
+<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
 
-For Laravel 5.3 improved version look at [this repository](https://github.com/bestmomo/laravel5-3-example).
+<p align="center">
+<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
+</p>
 
-**Laravel 5 example** is a tutorial application for Laravel 5.2 (in french [there](http://laravel.sillo.org/laravel-5/)).
+## About Laravel
 
-### Installation ###
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
 
-* `git clone https://github.com/bestmomo/laravel5-example.git projectname`
-* `cd projectname`
-* `composer install`
-* `php artisan key:generate`
-* Create a database and inform *.env*
-* `php artisan migrate --seed` to create and populate tables
-* Inform *config/mail.php* for email sends
-* `php artisan vendor:publish` to publish filemanager
-* `php artisan serve` to start the app on http://localhost:8000/
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Another cool way to install it is to upload [this package](http://laravel.sillo.org/tuto/installable.zip), unpack it in your server folder, and just launch it and follow the installation windows. It has been created with my [laravel installer package](https://github.com/bestmomo/laravel-installer). Anyway you'll have to set the email configuration.
+Laravel is accessible, yet powerful, providing tools needed for large, robust applications. A superb combination of simplicity, elegance, and innovation give you tools you need to build any application with which you are tasked.
 
-### Nitrous Quickstart ###
+## Learning Laravel
 
-Create a free development environment for this Laravel 5 example project in the cloud on [Nitrous.io](https://www.nitrous.io) by clicking the button below.
+Laravel has the most extensive and thorough documentation and video tutorial library of any modern web application framework. The [Laravel documentation](https://laravel.com/docs) is thorough, complete, and makes it a breeze to get started learning the framework.
 
-<a href="https://www.nitrous.io/quickstart">
-  <img src="https://nitrous-image-icons.s3.amazonaws.com/quickstart.png" alt="Nitrous Quickstart" width=142 height=34>
-</a>
+If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 900 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
 
-In the IDE, start Laravel 5 Example via `Run > Start Laravel 5 Example` and access your site via `Preview > 8000`.
+## Contributing
 
-### Include ###
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
 
-* [HTML5 Boilerplate](http://html5boilerplate.com) for front architecture
-* [Bootstrap](http://getbootstrap.com) for CSS and jQuery plugins
-* [Font Awesome](http://fortawesome.github.io/Font-Awesome) for the nice icons
-* [Highlight.js](https://highlightjs.org) for highlighting code
-* [Startbootstrap](http://startbootstrap.com) for the free templates
-* [CKEditor](http://ckeditor.com) the great editor
-* [Filemanager](https://github.com/simogeo/Filemanager) the easy file manager
+## Security Vulnerabilities
 
-### Features ###
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
 
-* Home page
-* Custom Error Page 404
-* Authentication (registration, login, logout, password reset, mail confirmation, throttle)
-* Users roles : administrator (all access), redactor (create and edit post, upload and use medias in personnal directory), and user (create comment in blog)
-* Blog with comments
-* Search in posts
-* Tags on posts
-* Contact us page
-* Admin dashboard with new messages, users, posts and comments
-* Users admin (roles filter, show, edit, delete, create)
-* Messages admin
-* Posts admin (list with dynamic order, show, edit, delete, create)
-* Medias gestion
-* Localisation
+## License
 
-### Packages included ###
-
-* laravelcollective/html
-* bestmomo/filemanager
-
-### Tricks ###
-
-To test application the database is seeding with users :
-
-* Administrator : email = admin@la.fr, password = admin
-* Redactor : email = redac@la.fr, password = redac
-* User : email = walker@la.fr, password = walker
-* User : email = slacker@la.fr, password = slacker
+The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).

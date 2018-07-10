@@ -1,41 +1,116 @@
-@extends('front.template')
+@extends('layouts.master')
 
-@section('main')
-	<div class="row">
-		<div class="box">
-			<div class="col-lg-12">
-				<hr>	
-				<h2 class="intro-text text-center">{{ trans('front/register.title') }}</h2>
-				<hr>
-				<p>{{ trans('front/register.infos') }}</p>		
+@section('content')
+<div class="container">
+    <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li>Register</li>
+    </ol>
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
 
-				{!! Form::open(['url' => 'auth/register', 'method' => 'post', 'role' => 'form']) !!}	
+            <div>
 
-					<div class="row">
-						{!! Form::control('text', 6, 'username', $errors, trans('front/register.pseudo'), null, [trans('front/register.warning'), trans('front/register.warning-name')]) !!}
-						{!! Form::control('email', 6, 'email', $errors, trans('front/register.email')) !!}
-					</div>
-					<div class="row">	
-						{!! Form::control('password', 6, 'password', $errors, trans('front/register.password'), null, [trans('front/register.warning'), trans('front/register.warning-password')]) !!}
-						{!! Form::control('password', 6, 'password_confirmation', $errors, trans('front/register.confirm-password')) !!}
-					</div>
-					{!! Form::text('address', '', ['class' => 'hpet']) !!}	
+                <a href="/auth/facebook">
+                    <button type="button"class="btn btn-primary btn-lg btn-block">Facebook Sign In
+                    </button>
+                </a>
 
-					<div class="row">	
-						{!! Form::submit(trans('front/form.send'), ['col-lg-12']) !!}
-					</div>
-					
-				{!! Form::close() !!}
+            </div>
 
-			</div>
-		</div>
-	</div>
-@stop
+            <div>Register in with your Facebook sign in above or use the form below:</div>
 
-@section('scripts')
+            <div class="panel panel-default">
+                <div class="panel-heading">Register</div>
+                <div class="panel-body">
+                    <form class="form-horizontal" role="form" method="POST" action="{{ url('/register') }}">
+                        {{ csrf_field() }}
 
-	<script>
-		$(function() { $('.badge').popover();	});
-	</script>
+                        <div class="form-group{{ $errors->has('name') ? ' has-error' : '' }}">
+                            <label for="name" class="col-md-4 control-label">Name</label>
 
-@stop
+                            <div class="col-md-6">
+                                <input id="name" type="text" class="form-control" name="name" value="{{ old('name') }}" required autofocus>
+
+                                @if ($errors->has('name'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('name') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
+                            <label for="email" class="col-md-4 control-label">E-Mail Address</label>
+
+                            <div class="col-md-6">
+                                <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" required>
+
+                                @if ($errors->has('email'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('email') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
+                            <label for="password" class="col-md-4 control-label">Password</label>
+
+                            <div class="col-md-6">
+                                <input id="password" type="password" class="form-control" name="password" required>
+
+                                @if ($errors->has('password'))
+                                    <span class="help-block">
+                                        <strong>{{ $errors->first('password') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password-confirm" class="col-md-4 control-label">Confirm Password</label>
+
+                            <div class="col-md-6">
+                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-md-4 control-label">Subscribe to Newsletter?
+                            </label>
+                            <div class="col-md-6">
+                                <input type="checkbox"  name="is_subscribed">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-md-4 control-label{{ $errors->has('terms') ? ' has-error' : '' }}">
+                                <a href="/terms-of-service">
+
+                                    Agree To Terms
+
+                                </a></label>
+
+                            <div class="col-md-6">
+                                <input type="checkbox"  name="terms" required>
+                                @if ($errors->has('terms'))
+                                    <span class="help-block"><strong>{{ $errors->first('terms') }}</strong></span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-6 col-md-offset-4">
+                                <button type="submit" class="btn btn-primary">
+                                    Register
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

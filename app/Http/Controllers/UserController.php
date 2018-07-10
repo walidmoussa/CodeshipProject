@@ -1,188 +1,101 @@
-<?php namespace App\Http\Controllers;
+<?php
 
-use App\Repositories\UserRepository;
-use App\Repositories\RoleRepository;
-use App\Http\Requests\UserCreateRequest;
-use App\Http\Requests\UserUpdateRequest;
-use App\Http\Requests\RoleRequest;
-use App\Models\User;
+namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
+use App\Http\Requests\UserRequest;
+use DB;
+use App\User;
+use Redirect;
+class UserController extends Controller
+{
 
-class UserController extends Controller {
+    public function __construct()
 
-	/**
-	 * The UserRepository instance.
-	 *
-	 * @var App\Repositories\UserRepository
-	 */
-	protected $user_gestion;
+    {
+        $this->middleware(['auth', 'admin']);
 
-	/**
-	 * The RoleRepository instance.
-	 *
-	 * @var App\Repositories\RoleRepository
-	 */	
-	protected $role_gestion;
+    }
 
-	/**
-	 * Create a new UserController instance.
-	 *
-	 * @param  App\Repositories\UserRepository $user_gestion
-	 * @param  App\Repositories\RoleRepository $role_gestion
-	 * @return void
-	 */
-	public function __construct(
-		UserRepository $user_gestion,
-		RoleRepository $role_gestion)
-	{
-		$this->user_gestion = $user_gestion;
-		$this->role_gestion = $role_gestion;
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
 
-		$this->middleware('admin');
-		$this->middleware('ajax', ['only' => 'updateSeen']);
-	}
+    public function index()
+    {
+        $users = User::paginate(10);
 
-	/**
-	 * Display a listing of the resource.
-	 *
-	 * @return Response
-	 */
-	public function index()
-	{
-		return $this->indexSort('total');
-	}
+        return view('user.index', compact('users'));
 
-	/**
-	 * Display a listing of the resource.
-	 *
-     * @param  string  $role
-	 * @return Response
-	 */
-	public function indexSort($role)
-	{
-		$counts = $this->user_gestion->counts();
-		$users = $this->user_gestion->index(4, $role); 
-		$links = $users->render();
-		$roles = $this->role_gestion->all();
+    }
 
-		return view('back.users.index', compact('users', 'links', 'counts', 'roles'));		
-	}
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
 
-	/**
-	 * Show the form for creating a new resource.
-	 *
-	 * @return Response
-	 */
-	public function create()
-	{
-		return view('back.users.create', $this->role_gestion->getAllSelect());
-	}
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
 
-	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @param  App\requests\UserCreateRequest $request
-	 *
-	 * @return Response
-	 */
-	public function store(
-		UserCreateRequest $request)
-	{
-		$this->user_gestion->store($request->all());
+        $profile = $user->profile;
 
-		return redirect('user')->with('ok', trans('back/users.created'));
-	}
+        return view('user.show', compact('user', 'profile'));
 
-	/**
-	 * Display the specified resource.
-	 *
-	 * @param  App\Models\User
-	 * @return Response
-	 */
-	public function show(User $user)
-	{
-		return view('back.users.show',  compact('user'));
-	}
+    }
 
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  App\Models\User
-	 * @return Response
-	 */
-	public function edit(User $user)
-	{
-		return view('back.users.edit', array_merge(compact('user'), $this->role_gestion->getAllSelect()));
-	}
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
 
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  App\requests\UserUpdateRequest $request
-	 * @param  App\Models\User
-	 * @return Response
-	 */
-	public function update(
-		UserUpdateRequest $request,
-		User $user)
-	{
-		$this->user_gestion->update($request->all(), $user);
+    public function edit($id)
+    {
 
-		return redirect('user')->with('ok', trans('back/users.updated'));
-	}
+        $user = User::findOrFail($id);
 
-	/**
-	 * Update the specified resource in storage.
-	 *
-	 * @param  Illuminate\Http\Request $request
-	 * @param  App\Models\User $user
-	 * @return Response
-	 */
-	public function updateSeen(
-		Request $request, 
-		User $user)
-	{
-		$this->user_gestion->update($request->all(), $user);
+        return view('user.edit', compact('user'));
 
-		return response()->json();
-	}
+    }
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(UserRequest $request, $id)
+    {
+        $user = User::findOrFail($id);
 
-	/**
-	 * Remove the specified resource from storage.
-	 *
-	 * @param  App\Models\user $user
-	 * @return Response
-	 */
-	public function destroy(User $user)
-	{
-		$this->user_gestion->destroyUser($user);
+        $user->updateUser($user, $request);
 
-		return redirect('user')->with('ok', trans('back/users.destroyed'));
-	}
+        alert()->success('Congrats!', 'You updated a user');
 
-	/**
-	 * Display the roles form
-	 *
-	 * @return Response
-	 */
-	public function getRoles()
-	{
-		$roles = $this->role_gestion->all();
+        return Redirect::route('user.show', ['user' => $user]);
+    }
 
-		return view('back.users.roles', compact('roles'));
-	}
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
 
-	/**
-	 * Update roles
-	 *
-	 * @param  App\requests\RoleRequest $request
-	 * @return Response
-	 */
-	public function postRoles(RoleRequest $request)
-	{
-		$this->role_gestion->update($request->except('_token'));
-		
-		return redirect('user/roles')->with('ok', trans('back/roles.ok'));
-	}
+    public function destroy($id)
+    {
+        User::destroy($id);
+
+        alert()->overlay('Attention!', 'You deleted a user', 'error');
+
+        return Redirect::route('user.index');
+
+    }
 
 }

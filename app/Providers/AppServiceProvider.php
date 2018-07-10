@@ -1,32 +1,31 @@
-<?php namespace App\Providers;
+<?php
+
+namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Validator;
-use App\Services\Validation;
 
-class AppServiceProvider extends ServiceProvider {
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
 
-	/**
-	 * Bootstrap any application services.
-	 *
-	 * @return void
-	 */
-	public function boot()
-	{
-		Validator::resolver(function($translator, $data, $rules, $messages)
-		{
-		    return new Validation($translator, $data, $rules, $messages);
-		});
-	}
+        $value = \App\Utilities\Copyright::displayNotice();
 
-	/**
-	 * Register any application services.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		//
-	}
+        view()->share('copyright', $value);
+    }
 
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        //
+    }
 }

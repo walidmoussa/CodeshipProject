@@ -2,151 +2,98 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
+use App\Events\RegistrationCompleted;
+use App\Exceptions\NoActiveAccountException;
+use App\Http\AuthTraits\Social\ManagesSocialAuth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Socialite;
+use Illuminate\Auth\Events\Registered;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\RegisterRequest;
-use App\Repositories\UserRepository;
-use App\Jobs\SendMail;
-
-class AuthController extends Controller
+class AuthController extends RegisterController
 {
+    use AuthenticatesUsers, ManagesSocialAuth;
 
-	use AuthenticatesAndRegistersUsers, ThrottlesLogins;
+    protected $redirectTo = '/';
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('guest', ['except' => ['logout',
+            'redirectToProvider',
+            'handleProviderCallback']
+        ]);
+    }
 
-	/**
-	 * Create a new authentication controller instance.
-	 *
-	 * @return void
-	 */
-	public function __construct()
-	{
-		$this->middleware('guest', ['except' => 'getLogout']);
-	}
+    private function checkStatusLevel()
+    {
+        if ( ! Auth::user()->isActiveStatus()) {
+            Auth::logout();
+            throw new NoActiveAccountException;
+        }
+    }
 
-	/**
-	 * Handle a login request to the application.
-	 *
-	 * @param  App\Http\Requests\LoginRequest  $request
-	 * @param  Guard  $auth
-	 * @return Response
-	 */
-	public function postLogin(
-		LoginRequest $request,
-		Guard $auth)
-	{
-		$logValue = $request->input('log');
+    public function redirectPath()
+    {
+        if (Auth::user()->isAdmin()){
+            return 'admin';
+        }
+        return property_exists($this, 'redirectTo') ? $this->redirectTo : '/';
+    }
 
-		$logAccess = filter_var($logValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+    /**
+     * Handle a login request to the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
 
-        $throttles = in_array(
-            ThrottlesLogins::class, class_uses_recursive(get_class($this))
-        );
+    public function login(Request $request)
+    {
+        $this->validateLogin($request);
 
-        if ($throttles && $this->hasTooManyLoginAttempts($request)) {
-			return redirect('/auth/login')
-				->with('error', trans('front/login.maxattempt'))
-				->withInput($request->only('log'));
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+
+        if ($this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
         }
 
-		$credentials = [
-			$logAccess  => $logValue, 
-			'password'  => $request->input('password')
-		];
+        if ($this->attemptLogin($request)) {
 
-		if(!$auth->validate($credentials)) {
-			if ($throttles) {
-	            $this->incrementLoginAttempts($request);
-	        }
+            $this->checkStatusLevel();
 
-			return redirect('/auth/login')
-				->with('error', trans('front/login.credentials'))
-				->withInput($request->only('log'));
-		}
-			
-		$user = $auth->getLastAttempted();
+            return $this->sendLoginResponse($request);
+        }
 
-		if($user->confirmed) {
-			if ($throttles) {
-                $this->clearLoginAttempts($request);
-            }
+        // If the login attempt was unsuccessful we will increment the number of attempts
+        // to login and redirect the user back to the login form. Of course, when this
+        // user surpasses their maximum number of attempts they will get locked out.
 
-			$auth->login($user, $request->has('memory'));
+        $this->incrementLoginAttempts($request);
 
-			if($request->session()->has('user_id'))	{
-				$request->session()->forget('user_id');
-			}
+        return $this->sendFailedLoginResponse($request);
+    }
 
-			return redirect('/');
-		}
-		
-		$request->session()->put('user_id', $user->id);	
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
 
-		return redirect('/auth/login')->with('error', trans('front/verify.again'));			
-	}
+        event(new Registered($user = $this->create($request->all())));
 
+        $this->guard()->login($user);
 
-	/**
-	 * Handle a registration request for the application.
-	 *
-	 * @param  App\Http\Requests\RegisterRequest  $request
-	 * @param  App\Repositories\UserRepository $user_gestion
-	 * @return Response
-	 */
-	public function postRegister(
-		RegisterRequest $request,
-		UserRepository $user_gestion)
-	{
-		$user = $user_gestion->store(
-			$request->all(), 
-			$confirmation_code = str_random(30)
-		);
+        event(new RegistrationCompleted($user));
 
-		$this->dispatch(new SendMail($user));
+        return $this->registered($request, $user)
+            ?: redirect($this->redirectPath());
+    }
 
-		return redirect('/')->with('ok', trans('front/verify.message'));
-	}
-
-	/**
-	 * Handle a confirmation request.
-	 *
-	 * @param  App\Repositories\UserRepository $user_gestion
-	 * @param  string  $confirmation_code
-	 * @return Response
-	 */
-	public function getConfirm(
-		UserRepository $user_gestion,
-		$confirmation_code)
-	{
-		$user = $user_gestion->confirm($confirmation_code);
-
-        return redirect('/')->with('ok', trans('front/verify.success'));
-	}
-
-	/**
-	 * Handle a resend request.
-	 *
-	 * @param  App\Repositories\UserRepository $user_gestion
-	 * @param  Illuminate\Http\Request $request
-	 * @return Response
-	 */
-	public function getResend(
-		UserRepository $user_gestion,
-		Request $request)
-	{
-		if($request->session()->has('user_id'))	{
-			$user = $user_gestion->getById($request->session()->get('user_id'));
-
-			$this->dispatch(new SendMail($user));
-
-			return redirect('/')->with('ok', trans('front/verify.resend'));
-		}
-
-		return redirect('/');        
-	}
-	
 }
