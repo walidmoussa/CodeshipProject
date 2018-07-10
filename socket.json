@@ -1,5 +1,0 @@
-{
-  "name": "messagerie",
-  "script": "laravel-echo-server",
-  "args": "start"
-}
