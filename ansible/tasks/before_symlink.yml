@@ -1,0 +1,33 @@
+- name: LARAVEL | Composer install
+  composer:
+    command: install
+    working_dir: "{{ ansistrano_release_path.stdout }}"
+    optimize_autoloader: true
+- name: LARAVEL | App key generate
+  shell: "php artisan key:generate --show > {{ ansistrano_shared_path }}/app_key"
+  args:
+    chdir: "{{ ansistrano_release_path.stdout }}"
+    creates: "{{ ansistrano_shared_path }}/app_key"
+- name: LARAVEL | Reading App key
+  command: "cat {{ ansistrano_shared_path }}/app_key"
+  register: app_key
+- name: LARAVEL | .env
+  template:
+    src: env.j2
+    dest: "{{ ansistrano_shared_path }}/.env"
+- name: LARAVEL | laravel-echo-server
+  template:
+    src: laravel-echo-server.j2
+    dest: "{{ ansistrano_shared_path }}/laravel-echo-server.json"
+- name: LARAVEL | Storage directory
+  file:
+    path: "{{ item }}"
+    mode: 0777
+    state: directory
+  with_items:
+    - "{{ ansistrano_shared_path }}/storage/app/public"
+    - "{{ ansistrano_shared_path }}/storage/framework/cache"
+    - "{{ ansistrano_shared_path }}/storage/framework/sessions"
+    - "{{ ansistrano_shared_path }}/storage/framework/testing"
+    - "{{ ansistrano_shared_path }}/storage/framework/views"
+    - "{{ ansistrano_shared_path }}/storage/logs"
